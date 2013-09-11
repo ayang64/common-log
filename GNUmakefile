@@ -1,5 +1,8 @@
 
+# Depends on a newer version of flex. I need to encourage the FreeBSD
+# maintainer to update flex-devel.
 LEX			:=	/home/ayan/usr/bin/flex
+YACC		:=	/usr/local/bin/bison
 CFLAGS	:=	-std=gnu99 -W -Wall -MMD -pipe
 
 .PHONY : clean
