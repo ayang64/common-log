@@ -17,19 +17,18 @@ struct buf *string;
 
 %option outfile="common-log.yy.c" header="common-log.yy.h"
 
-
 %x QSTRING BSTRING
 
 %%
 
 <BSTRING>{
-]						{
+]							{
 								BEGIN(INITIAL);
 								fprintf(stderr,"<<< %s >>>\n", string->data);
 								TOKEN(BSTRING);
 							}	
 
-[^\]]*						{ buf_strcat(string,yytext, yyleng); }
+[^\]]*				{ buf_strcat(string,yytext, yyleng); }
 
 }
 
@@ -54,27 +53,27 @@ struct buf *string;
 							}
 
 [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}	{
-									unsigned octet[4];
-									sscanf(yytext, "%d.%d.%d.%d", &octet[0], &octet[1], &octet[2], &octet[3]);
+								unsigned octet[4];
+								sscanf(yytext, "%d.%d.%d.%d", &octet[0], &octet[1], &octet[2], &octet[3]);
 
-									size_t i = 0;
-									for (; i < 4; i++)
-										if (octet[i] > 0x100)
-											break;
+								size_t i = 0;
+								for (; i < 4; i++)
+									if (octet[i] > 0x100)
+										break;
 
-									if (i == 4)
-										TOKEN(IPADDRESS);
-									else
-										TOKEN(ERRORADDRESS);
-								}
+								if (i == 4)
+									TOKEN(IPADDRESS);
+								else
+									TOKEN(ERRORADDRESS);
+							}
 
 [^\"\[[:space:]]+		{	TOKEN(IDENTIFIER); }
 
-[[:space:]]+		{
-									TOKEN(SPACE);
-								}
-.								;
-\n							;
+[[:space:]]+	{
+								TOKEN(SPACE);
+							}
+.							;
+\n						;
 
 %%
 
