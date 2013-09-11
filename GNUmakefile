@@ -12,3 +12,5 @@ common-log.yy.c common-log.yy.h : common-log.l
 
 clean:
 	rm -f common-log common-log.yy.* *.o *.d
+
+-include *.d
