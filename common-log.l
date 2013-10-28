@@ -1,12 +1,11 @@
 %{
-
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "common-log.tab.h"
 #include "buf.h"
 
-#define TOKEN(n)		({ fprintf(stderr, "flex: %s (%s)\n", #n, yytext); return n;}) 
+#define TOKEN(n)		({ /* fprintf(stderr, "flex: %s (%s)\n", #n, yytext); */ return n;}) 
 
 struct buf *string = NULL;
 %}
@@ -19,16 +18,16 @@ struct buf *string = NULL;
 %option bison-locations
 %option reentrant
 
+
 %option outfile="common-log.yy.c" header="common-log.yy.h"
 
 %x QUOTED_STRING BRACKET_STRING
-
 %%
 
 <BRACKET_STRING>{
 ]							{
 								BEGIN(INITIAL);
-								fprintf(stderr,"<<< %s >>>\n", string->data);
+								yylval->string = strdup(string->data);
 								TOKEN(BSTRING);
 							}	
 
@@ -39,7 +38,7 @@ struct buf *string = NULL;
 <QUOTED_STRING>{
 \"						{
 								BEGIN(INITIAL);
-								fprintf(stderr,"''' %s '''\n", string->data);
+								yylval->string = strdup(string->data);
 								TOKEN(QSTRING);
 							}	
 
@@ -58,7 +57,8 @@ struct buf *string = NULL;
 
 [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}	{
 								unsigned octet[4];
-								sscanf(yytext, "%d.%d.%d.%d", &octet[0], &octet[1], &octet[2], &octet[3]);
+								sscanf(yytext, "%d.%d.%d.%d",
+									&octet[0], &octet[1], &octet[2], &octet[3]);
 
 								size_t i = 0;
 								for (; i < 4; i++)
@@ -76,9 +76,10 @@ struct buf *string = NULL;
 
 [a-z0-9][^\"\[[:space:]]+		{	TOKEN(IDENTIFIER); }
 
-[[:space:]]+	{ fprintf(stderr, "ignoring White space...\n"); }
+[[:space:]]+	;	
 
-.							{ fprintf(stderr, "TOKEN('%c');\n", yytext[0]); return yytext[0]; }
+.							{ return yytext[0]; }
+
 \n						;
 
 %%

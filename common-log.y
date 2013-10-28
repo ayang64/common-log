@@ -13,8 +13,11 @@
 %verbose
 %lex-param   { yyscan_t scanner }
 
+%destructor { free($<string>$); } QSTRING  BSTRING
+
 %union {
 	double val;
+	char *string;
 }
 
 %token INTEGER SPACE IPADDRESS ERRORADDRESS IDENTIFIER BSTRING QSTRING
@@ -24,8 +27,9 @@ document : 	logline
 						| document logline
 						;
 
-logline	:		hostname '-' username BSTRING QSTRING INTEGER INTEGER QSTRING QSTRING
-						| hostname '-' username BSTRING QSTRING INTEGER '-' QSTRING QSTRING
+logline	:			hostname '-' username BSTRING QSTRING INTEGER INTEGER QSTRING QSTRING
+							{ printf("%s\n", $<string>8); }
+						|	hostname '-' username BSTRING QSTRING INTEGER '-' QSTRING QSTRING
 						;
 
 hostname:		IPADDRESS
@@ -33,13 +37,13 @@ hostname:		IPADDRESS
 						;
 			
 username:		IDENTIFIER
+						| INTEGER
 						| '-'
 						;
 %%
 int
 main(int argc, char *argv[])
 {
-	yydebug = 1;
 	yyscan_t scanner;
 	yylex_init(&scanner);
 	yyparse(scanner);
