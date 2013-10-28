@@ -34,7 +34,8 @@ buf_expand(struct buf *b, size_t extra)
 size_t /* Size of existing buffer. */
 buf_reset(struct buf *b)
 {
-	assert(b != NULL);
+	if (b == NULL)
+		return -1;
 
 	if (b->data != NULL && b->nbytes > 0)
 		b->data[0] = '\0';
@@ -47,20 +48,24 @@ buf_reset(struct buf *b)
 	If necessary, reallocates and appends a string to a buffer.
  */
 void
-buf_strcat(struct buf *b, const char *data, size_t len)
+buf_strcat(struct buf **b, const char *data, size_t len)
 {
-	assert(b != NULL);
+	if (*b == NULL)
+		*b = buf_new();
 
-	size_t slen = b->data != NULL ? strlen(data) : 0;
+	assert(*b != NULL);
 
-	if ((b->nbytes - slen) < (len + 1)) {
-		size_t pbytes = b->nbytes;
-		buf_expand(b,len+1);
+
+	size_t slen = (*b)->data != NULL ? strlen(data) : 0;
+
+	if (((*b)->nbytes - slen) < (len + 1)) {
+		size_t pbytes = (*b)->nbytes;
+		buf_expand(*b,len+1);
 
 		if (pbytes == 0)
-			buf_reset(b);
+			buf_reset(*b);
 	}
 
-	strcat(b->data,data);
+	strcat((*b)->data,data);
 }
 

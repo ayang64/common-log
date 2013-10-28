@@ -1,4 +1,4 @@
-CFLAGS := -std=c99 -pipe -g -MMD -W -Wall
+CFLAGS := -std=c99 -pipe -g -MMD -W -Wall -DYYDEBUG=1
 
 .PHONY : clean
 
@@ -11,7 +11,7 @@ common-log.yy.c common-log.yy.h :	common-log.l common-log.tab.c common-log.tab.h
 	/usr/local/bin/flex common-log.l
 
 common-log.tab.c common-log.tab.h : common-log.y
-	/usr/local/bin/bison --locations --defines=common-log.tab.h common-log.y
+	/usr/local/bin/bison -t --locations --defines=common-log.tab.h common-log.y
 
 clean :
 	rm -f common-log-parse *.o common-log.tab.c common-log.tab.h common-log.yy.c common-log.yy.h *.d

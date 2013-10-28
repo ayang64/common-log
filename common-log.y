@@ -1,33 +1,47 @@
-
 %{
-
 #define YYPARSE_PARAM scanner
 #define YYLEX_PARAM   scanner
 
 #include <stdio.h>
-
-
+#include "common-log.tab.h"
+#include "common-log.yy.h"
 
 %}
 
-%locations
 %defines
 %pure-parser
 %verbose
+%lex-param   { yyscan_t scanner }
 
 %union {
 	double val;
 }
 
-%token FOO INTEGER
+%token INTEGER SPACE IPADDRESS ERRORADDRESS IDENTIFIER BSTRING QSTRING
 
 %%
-
-document : 	INTEGER
-						| document INTEGER
+document : 	logline
+						| document logline
 						;
 
+logline	:		hostname '-' username BSTRING QSTRING INTEGER INTEGER QSTRING QSTRING
+						| hostname '-' username BSTRING QSTRING INTEGER '-' QSTRING QSTRING
+						;
 
-integer	: INTEGER
-					{ printf("INTEGER!\n"); }
+hostname:		IPADDRESS
+						| IDENTIFIER
+						;
+			
+username:		IDENTIFIER
+						| '-'
+						;
 %%
+int
+main(int argc, char *argv[])
+{
+	yydebug = 1;
+	yyscan_t scanner;
+	yylex_init(&scanner);
+	yyparse(scanner);
+	yylex_destroy(scanner);
+}

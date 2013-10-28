@@ -2,54 +2,58 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "common-log.tab.h"
 #include "buf.h"
 
-#define TOKEN(n)		({	fprintf(stderr, "%s (%s)\n", #n, yytext); })
+#define TOKEN(n)		({ fprintf(stderr, "flex: %s (%s)\n", #n, yytext); return n;}) 
 
-struct buf *string;
+struct buf *string = NULL;
 %}
 
 %option 8bit
 %option stack
 %option yylineno
-%option yywrap
+%option noyywrap
+%option bison-bridge
+%option bison-locations
 %option reentrant
 
 %option outfile="common-log.yy.c" header="common-log.yy.h"
 
-%x QSTRING BSTRING
+%x QUOTED_STRING BRACKET_STRING
 
 %%
 
-<BSTRING>{
+<BRACKET_STRING>{
 ]							{
 								BEGIN(INITIAL);
 								fprintf(stderr,"<<< %s >>>\n", string->data);
 								TOKEN(BSTRING);
 							}	
 
-[^\]]*				{ buf_strcat(string,yytext, yyleng); }
+[^\]]*				{ buf_strcat(&string,yytext, yyleng); }
 
 }
 
-<QSTRING>{
+<QUOTED_STRING>{
 \"						{
 								BEGIN(INITIAL);
 								fprintf(stderr,"''' %s '''\n", string->data);
 								TOKEN(QSTRING);
 							}	
 
-[^\"]*						{ buf_strcat(string,yytext, yyleng); }
+[^\"]*				{ buf_strcat(&string,yytext, yyleng); }
 }
 
 \"						{
 								buf_reset(string);
-								BEGIN(QSTRING);
+								BEGIN(QUOTED_STRING);
 							}
 
-[\[]						{
+[\[]					{
 								buf_reset(string);
-								BEGIN(BSTRING);
+								BEGIN(BRACKET_STRING);
 							}
 
 [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}	{
@@ -67,27 +71,15 @@ struct buf *string;
 									TOKEN(ERRORADDRESS);
 							}
 
-[^\"\[[:space:]]+		{	TOKEN(IDENTIFIER); }
 
-[[:space:]]+	{
-								TOKEN(SPACE);
-							}
-.							;
+[0-9]+				{	TOKEN(INTEGER); }
+
+[a-z0-9][^\"\[[:space:]]+		{	TOKEN(IDENTIFIER); }
+
+[[:space:]]+	{ fprintf(stderr, "ignoring White space...\n"); }
+
+.							{ fprintf(stderr, "TOKEN('%c');\n", yytext[0]); return yytext[0]; }
 \n						;
 
 %%
-
-int
-main(int argc, char *argv[])
-{
-	string = buf_new();
-
-	yyscan_t	scanner;
-
-	yylex_init(&scanner);
-	yylex(scanner);
-	yylex_destroy(scanner);
-
-	exit(0);
-}
 
