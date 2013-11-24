@@ -19,22 +19,11 @@
 
 %x QUOTED_STRING BRACKET_STRING
 %%
-
-
-\[[^]]+]				{		yylval->string = strdup(yytext); TOKEN(BSTRING); }
-
-\"(\\.|[^"])*\"	{
-									yylval->string = strdup(yytext); TOKEN(QSTRING);
-							}
-
-
-[0-9]+				{ yylval->string = strdup(yytext); TOKEN(INTEGER); }
-
-[[:alnum:]][[:alnum:][:punct:]]+		{ yylval->string = strdup(yytext);	TOKEN(IDENTIFIER); }
-
+\[[^]]+]				{	yylval->string = strndup(yytext + 1, yyleng - 2); TOKEN(BSTRING); }
+\"(\\.|[^"])*\"	{ yylval->string = strndup(yytext + 1, yyleng - 2); TOKEN(QSTRING); }
+[0-9]+					{ yylval->string = strdup(yytext); TOKEN(INTEGER); }
+[[:alnum:]][[:alnum:][:punct:]]+	{ yylval->string = strdup(yytext);	TOKEN(IDENTIFIER); }
 -								{ yylval->string = strdup(yytext);	TOKEN(IDENTIFIER); }
-
-[[:space:]]+	;	
 [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}	{
 								unsigned octet[4];
 								sscanf(yytext, "%d.%d.%d.%d",
@@ -50,10 +39,8 @@
 								else
 									TOKEN(ERRORADDRESS);
 							}
-
+[[:space:]]+	/* ignore spaces. */ ;	
 .							{ return yytext[0]; }
-
 \n						;
-
 %%
 
