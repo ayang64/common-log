@@ -18,7 +18,6 @@ struct buf *string = NULL;
 %option bison-locations
 %option reentrant
 
-
 %option outfile="common-log.yy.c" header="common-log.yy.h"
 
 %x QUOTED_STRING BRACKET_STRING
@@ -55,6 +54,13 @@ struct buf *string = NULL;
 								BEGIN(BRACKET_STRING);
 							}
 
+[0-9]+				{ yylval->string = strdup(yytext); TOKEN(INTEGER); }
+
+[[:alnum:]][[:alnum:][:punct:]]+		{ yylval->string = strdup(yytext);	TOKEN(IDENTIFIER); }
+
+-								{ yylval->string = strdup(yytext);	TOKEN(IDENTIFIER); }
+
+[[:space:]]+	;	
 [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}	{
 								unsigned octet[4];
 								sscanf(yytext, "%d.%d.%d.%d",
@@ -72,11 +78,6 @@ struct buf *string = NULL;
 							}
 
 
-[0-9]+				{	TOKEN(INTEGER); }
-
-[a-z0-9][^\"\[[:space:]]+		{	TOKEN(IDENTIFIER); }
-
-[[:space:]]+	;	
 
 .							{ return yytext[0]; }
 
