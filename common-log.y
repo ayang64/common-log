@@ -47,6 +47,8 @@ logline	:		hostname identity username BSTRING QSTRING INTEGER size QSTRING QSTRI
 							printf("\n");
  
 						}
+						| error
+						{ yyerrok; }
 						;
 
 size:				INTEGER
@@ -61,6 +63,7 @@ identity:		IDENTIFIER
 						;
 
 username:		IDENTIFIER
+						| QSTRING
 						| INTEGER
 						;
 %%
