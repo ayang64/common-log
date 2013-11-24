@@ -3,11 +3,8 @@
 #include <stdlib.h>
 
 #include "common-log.tab.h"
-#include "buf.h"
 
 #define TOKEN(n)		({ /* fprintf(stderr, "flex: %s (%s)\n", #n, yytext); */ return n;}) 
-
-struct buf *string = NULL;
 %}
 
 %option 8bit
@@ -23,36 +20,13 @@ struct buf *string = NULL;
 %x QUOTED_STRING BRACKET_STRING
 %%
 
-<BRACKET_STRING>{
-]							{
-								BEGIN(INITIAL);
-								yylval->string = strdup(string->data);
-								TOKEN(BSTRING);
-							}	
 
-[^\]]*				{ buf_strcat(&string,yytext, yyleng); }
+\[[^]]+]				{		yylval->string = strdup(yytext); TOKEN(BSTRING); }
 
-}
-
-<QUOTED_STRING>{
-\"						{
-								BEGIN(INITIAL);
-								yylval->string = strdup(string->data);
-								TOKEN(QSTRING);
-							}	
-
-[^\"]*				{ buf_strcat(&string,yytext, yyleng); }
-}
-
-\"						{
-								buf_reset(string);
-								BEGIN(QUOTED_STRING);
+\"(\\.|[^"])*\"	{
+									yylval->string = strdup(yytext); TOKEN(QSTRING);
 							}
 
-[\[]					{
-								buf_reset(string);
-								BEGIN(BRACKET_STRING);
-							}
 
 [0-9]+				{ yylval->string = strdup(yytext); TOKEN(INTEGER); }
 
@@ -76,8 +50,6 @@ struct buf *string = NULL;
 								else
 									TOKEN(ERRORADDRESS);
 							}
-
-
 
 .							{ return yytext[0]; }
 
