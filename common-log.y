@@ -75,7 +75,7 @@ main(int argc, char *argv[])
 
 	int fields[64];
 
-	char *pattern = strdup("date hostname method referrer");
+	char *pattern = NULL;
 
 	while ((arg = getopt(argc, argv, "f:")) != -1) {
 		switch (arg) {
@@ -84,6 +84,9 @@ main(int argc, char *argv[])
 				break;
 		}
 	}
+
+	if (pattern == NULL)
+		pattern = strdup("time hostname referrer");
 
 	char *token;
 	size_t n = 0;
