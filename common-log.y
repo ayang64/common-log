@@ -31,24 +31,21 @@ document : 	logline
 
 logline	:		hostname identity username BSTRING QSTRING INTEGER size QSTRING QSTRING
 						{
-							const char	*f[] = { $<string>1,
-													$<string>2,
-													$<string>3,
-													$<string>4,
-													$<string>5,
-													$<string>6,
-													$<string>7,
-													$<string>8,
-													$<string>9 };
-
+							const char	*f[] = { $<string>1, $<string>2, $<string>3, $<string>4, $<string>5, $<string>6, $<string>7, $<string>8, $<string>9 };
 							for (size_t i = 0; i < nfields; i++)
 								printf("%s ", f[fields[i]]);
 
 							printf("\n");
- 
 						}
 						| error
-						{ yyerrok; }
+						{
+							/*
+								We're here because either our input fd closed or there is a
+								syntax error in the log file. Either way, it is a fatal error.
+								Lets exit().
+							 */
+							exit(0);
+						}
 						;
 
 size:				INTEGER
@@ -70,12 +67,8 @@ username:		IDENTIFIER
 int
 main(int argc, char *argv[])
 {
-
-	int arg;
-
-	int fields[64];
-
-	char *pattern = NULL;
+	int arg, fields[64];
+	char *pattern = strdup("time hostname referrer");
 
 	while ((arg = getopt(argc, argv, "f:")) != -1) {
 		switch (arg) {
@@ -85,12 +78,8 @@ main(int argc, char *argv[])
 		}
 	}
 
-	if (pattern == NULL)
-		pattern = strdup("time hostname referrer");
-
-	char *token;
 	size_t n = 0;
-
+	char *token;
 	while ((token = strsep(&pattern, " ")) != NULL) {
 		if (strcmp(token,"hostname") == 0) {
 			fields[n] = 0;
@@ -114,7 +103,7 @@ main(int argc, char *argv[])
 		n++;
 	}
 
-/*	yydebug = 1; */
+	/*	yydebug = 1; */
 	yyscan_t scanner;
 	yylex_init(&scanner);
 	yyparse(scanner, pattern, n, fields);
