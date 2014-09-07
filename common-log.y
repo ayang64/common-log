@@ -42,9 +42,9 @@ logline	:		hostname identity username BSTRING QSTRING INTEGER size QSTRING QSTRI
 							/*
 								We're here because either our input fd closed or there is a
 								syntax error in the log file. Either way, it is a fatal error.
-								Lets exit().
+								Lets abort.
 							 */
-							exit(0);
+							YYABORT;
 						}
 						;
 
